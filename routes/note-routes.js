@@ -1,13 +1,45 @@
+var Note = require('../models/note');
+
 module.exports = function(app) {
   var baseUrl = '/api/v_0_0_1/notes';
 
   app.get(baseUrl, function(req,res){
-    res.json([{"noteBody" : "my new note"}]);
+    Note.find( {}, function(err, notes){
+      if(err) return res.status(500).json(err); // 500 is internal err
+      return res.json(notes);
+    });
   });
 
-    app.post(baseUrl, function(req, res) {
-    var note = req.body;
-    // db stuff to come
-    res.json({"_id" : "1234", "noteBody" : note.noteBody });
+  app.get(baseUrl + '/:id', function(req,res){
+    Note.findOne( {'_id' : req.params.id}, function(err, resNote){
+      if(err) return res.status(500).json(err); // 500 is internal err
+      return res.json(resNote);
+    });
   });
+
+  app.post(baseUrl, function(req, res) {
+    var note = new Note(req.body);
+    note.save(function( err, resNote ){
+      if(err) return res.status(500).json(err);
+      return res.json(resNote);
+    });
+  });
+
+  app.put(baseUrl + '/:id', function(req, res){
+    var note = req.body;
+    delete note._id;
+    Note.findOneAndUpdate({'_id':req.params.id}, note, function(err, resNote){
+      if(err) return res.status(500).json(err);
+      return res.status(200).json(resNote);
+    });
+
+  });
+
+  app.delete(baseUrl + '/:id', function(req, res){
+    Note.remove({'_id':req.params.id}, function(err, resNote){
+      if(err) return res.status(500).json(err);
+      return res.status(200).json({"msg":"deleted"});
+    });
+  });
+
 };
