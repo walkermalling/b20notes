@@ -5,23 +5,20 @@ module.exports = function(app) {
 
   app.get(baseUrl, function(req,res){
     Note.find( {}, function(err, notes){
-      if(err) return res.status(500).json(err); // 500 is internal err
-      return res.json(notes);
+      handle(res, err, notes);
     });
   });
 
   app.get(baseUrl + '/:id', function(req,res){
     Note.findOne( {'_id' : req.params.id}, function(err, resNote){
-      if(err) return res.status(500).json(err); // 500 is internal err
-      return res.json(resNote);
+      handle(res, err, resNote);
     });
   });
 
   app.post(baseUrl, function(req, res) {
     var note = new Note(req.body);
     note.save(function( err, resNote ){
-      if(err) return res.status(500).json(err);
-      return res.json(resNote);
+      handle(res, err, resNote);
     });
   });
 
@@ -29,17 +26,19 @@ module.exports = function(app) {
     var note = req.body;
     delete note._id;
     Note.findOneAndUpdate({'_id':req.params.id}, note, function(err, resNote){
-      if(err) return res.status(500).json(err);
-      return res.status(200).json(resNote);
+      handle(res, err,resNote);
     });
-
   });
 
   app.delete(baseUrl + '/:id', function(req, res){
     Note.remove({'_id':req.params.id}, function(err, resNote){
-      if(err) return res.status(500).json(err);
-      return res.status(200).json({"msg":"deleted"});
+      handle(res, err, {"msg":"deleted"});
     });
   });
 
+  function handle(res, err, data){
+    if(err) return res.status(500).json(err);
+    return res.status(200).json(data);
+  }
+  
 };
